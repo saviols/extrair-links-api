@@ -1,14 +1,14 @@
-from fastapi import FastAPI # type: ignore
+from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 import time
 import re
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse
 
 app = FastAPI()
 
@@ -16,23 +16,22 @@ class URLRequest(BaseModel):
     url: str
 
 def montar_url_base(url: str, codigo: str) -> str:
-    # Extrai domínio raiz (ex: https://www.ricardocorrealeiloes.com.br/)
     parsed = urlparse(url)
     base_url = f"{parsed.scheme}://{parsed.netloc}/Leilao.asp?zz={codigo}"
     return base_url
 
 def extrair_links_leilao(url: str) -> List[str]:
     options = Options()
-    options.add_argument("--headless")
+    options.add_argument("--headless")  # executa sem abrir janela
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
+    service = Service(GeckoDriverManager().install())
+    driver = webdriver.Firefox(service=service, options=options)
 
     try:
         driver.get(url)
-        time.sleep(10)
+        time.sleep(3)
 
         divs = driver.find_elements(By.XPATH, "//*[@onclick]")
         urls = []
